@@ -65,6 +65,7 @@ class TransformerEncoder(network.Network):
 
   def __init__(self,
                vocab_size,
+               embedding_size=128,
                hidden_size=768,
                num_layers=12,
                num_attention_heads=12,
@@ -86,6 +87,7 @@ class TransformerEncoder(network.Network):
     self._self_setattr_tracking = False
     self._config_dict = {
         'vocab_size': vocab_size,
+        'embedding_size': embedding_size,
         'hidden_size': hidden_size,
         'num_layers': num_layers,
         'num_attention_heads': num_attention_heads,
@@ -109,7 +111,7 @@ class TransformerEncoder(network.Network):
 
     self._embedding_layer = layers.OnDeviceEmbedding(
         vocab_size=vocab_size,
-        embedding_width=hidden_size,
+        embedding_width=embedding_size,
         initializer=initializer,
         name='word_embeddings')
     word_embeddings = self._embedding_layer(word_ids)
@@ -124,7 +126,7 @@ class TransformerEncoder(network.Network):
     type_embeddings = (
         layers.OnDeviceEmbedding(
             vocab_size=type_vocab_size,
-            embedding_width=hidden_size,
+            embedding_width=embedding_size,
             initializer=initializer,
             use_one_hot=True,
             name='type_embeddings')(type_ids))

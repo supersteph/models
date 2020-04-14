@@ -61,7 +61,7 @@ def define_common_bert_flags():
       'Number of steps per graph-mode loop. Only training step '
       'happens inside the loop. Callbacks will not be called '
       'inside.')
-  flags.DEFINE_float('learning_rate', 5e-5,
+  flags.DEFINE_float('learning_rate', 5e-4,
                      'The initial learning rate for Adam.')
   flags.DEFINE_boolean(
       'scale_loss', False,

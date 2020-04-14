@@ -69,6 +69,7 @@ class ElectraConfig(object):
         with checkpoints converted from TF 1.x BERT.
     """
     self.vocab_size = vocab_size
+    self.embedding_size = hidden_size;
     self.hidden_size = hidden_size
     self.num_hidden_layers = num_hidden_layers
     self.num_attention_heads = num_attention_heads
@@ -90,6 +91,8 @@ class ElectraConfig(object):
   def from_dict(cls, json_object):
     """Constructs a `BertConfig` from a Python dictionary of parameters."""
     config = ElectraConfig(vocab_size=None)
+    print("bitch please")
+    print(json_object)
     for (key, value) in six.iteritems(json_object):
       config.__dict__[key] = value
     return config

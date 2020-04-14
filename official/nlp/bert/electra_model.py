@@ -69,9 +69,10 @@ class ElectraPretrainLossAndMetricLayer(tf.keras.layers.Layer):
     weights = tf.cast(lm_label_weights, tf.float32)
     lm_output = tf.cast(lm_output, tf.float32)
     discrim_output = tf.cast(discrim_output, tf.float32)
+    input_masks = tf.cast(input_mask, tf.float32)
     mask_label_loss = losses.weighted_sparse_categorical_crossentropy_loss(
         labels=lm_label_ids, predictions=lm_output, weights=weights)
-    discrim_ind_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits = discrim_output, labels=tf.cast(discrim_labels,tf.float32))
+    discrim_ind_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits = discrim_output, labels=tf.cast(discrim_labels,tf.float32))*input_masks
     discrim_loss = tf.reduce_sum(discrim_ind_loss)
     loss = mask_label_loss+self.config["discrim_rate"]*discrim_loss
 
@@ -176,8 +177,6 @@ def pretrain_model(electra_config,
       shape=(max_predictions_per_seq,),
       name='masked_lm_weights',
       dtype=tf.int32)
-  next_sentence_labels = tf.keras.layers.Input(
-      shape=(1,), name='next_sentence_labels', dtype=tf.int32)
   gen_encoder = get_transformer_encoder(electraconfigs.ElectraConfig.get_generator_bert(electra_config), seq_length)
   discrim_encoder = get_transformer_encoder(electraconfigs.ElectraConfig.get_discriminator_bert(electra_config), seq_length)
   if initializer is None:
@@ -206,7 +205,6 @@ def pretrain_model(electra_config,
           'masked_lm_positions': masked_lm_positions,
           'masked_lm_ids': masked_lm_ids,
           'masked_lm_weights': masked_lm_weights,
-          'next_sentence_labels': next_sentence_labels,
       },
       outputs=output_loss)
   return keras_model, discrim_encoder
