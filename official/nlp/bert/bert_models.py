@@ -130,21 +130,21 @@ def get_transformer_encoder(bert_config,
         max_seq_length=bert_config.max_position_embeddings,
         initializer=tf.keras.initializers.TruncatedNormal(
             stddev=bert_config.initializer_range),
-        dropout_rate=bert_config.hidden_dropout_prob,
+        dropout_rate=bert_config.dropout_rate,
     )
     hidden_cfg = dict(
         num_attention_heads=bert_config.num_attention_heads,
         intermediate_size=bert_config.intermediate_size,
-        intermediate_activation=tf_utils.get_activation(bert_config.hidden_act),
-        dropout_rate=bert_config.hidden_dropout_prob,
-        attention_dropout_rate=bert_config.attention_probs_dropout_prob,
+        intermediate_activation=tf_utils.get_activation(bert_config.hidden_activation),
+        dropout_rate=bert_config.dropout_rate,
+        attention_dropout_rate=bert_config.attention_dropout_rate,
         kernel_initializer=tf.keras.initializers.TruncatedNormal(
             stddev=bert_config.initializer_range),
     )
     kwargs = dict(
         embedding_cfg=embedding_cfg,
         hidden_cfg=hidden_cfg,
-        num_hidden_instances=bert_config.num_hidden_layers,
+        num_hidden_instances=bert_config.num_layers,
         pooled_output_dim=bert_config.hidden_size,
         pooler_layer_initializer=tf.keras.initializers.TruncatedNormal(
             stddev=bert_config.initializer_range))
@@ -155,22 +155,22 @@ def get_transformer_encoder(bert_config,
   kwargs = dict(
       vocab_size=bert_config.vocab_size,
       hidden_size=bert_config.hidden_size,
-      num_layers=bert_config.num_hidden_layers,
+      num_layers=bert_config.num_layers,
       num_attention_heads=bert_config.num_attention_heads,
       intermediate_size=bert_config.intermediate_size,
-      activation=tf_utils.get_activation(bert_config.hidden_act),
-      dropout_rate=bert_config.hidden_dropout_prob,
-      attention_dropout_rate=bert_config.attention_probs_dropout_prob,
+      activation=tf_utils.get_activation(bert_config.hidden_activation),
+      dropout_rate=bert_config.dropout_rate,
+      attention_dropout_rate=bert_config.attention_dropout_rate,
       sequence_length=sequence_length,
       max_sequence_length=bert_config.max_position_embeddings,
       type_vocab_size=bert_config.type_vocab_size,
-      embedding_width=bert_config.embedding_size,
+      embedding_width=bert_config.hidden_size,
       initializer=tf.keras.initializers.TruncatedNormal(
           stddev=bert_config.initializer_range))
   if isinstance(bert_config, albert_configs.AlbertConfig):
     return networks.AlbertTransformerEncoder(**kwargs)
   else:
-    assert isinstance(bert_config, configs.BertConfig)
+    #assert isinstance(bert_config, configs.BertConfig)
     kwargs['output_range'] = output_range
     return networks.TransformerEncoder(**kwargs)
 
@@ -229,7 +229,7 @@ def pretrain_model(bert_config,
       network=transformer_encoder,
       embedding_table=transformer_encoder.get_embedding_table(),
       num_classes=2,  # The next sentence prediction label has two classes.
-      activation=tf_utils.get_activation(bert_config.hidden_act),
+      activation=tf_utils.get_activation(bert_config.hidden_activation),
       num_token_predictions=max_predictions_per_seq,
       initializer=initializer,
       output='logits')
@@ -345,7 +345,7 @@ def classifier_model(bert_config,
     return models.BertClassifier(
         bert_encoder,
         num_classes=num_labels,
-        dropout_rate=bert_config.hidden_dropout_prob,
+        dropout_rate=bert_config.dropout_rate,
         initializer=initializer), bert_encoder
 
   input_word_ids = tf.keras.layers.Input(
@@ -356,7 +356,7 @@ def classifier_model(bert_config,
       shape=(max_seq_length,), dtype=tf.int32, name='input_type_ids')
   bert_model = hub.KerasLayer(hub_module_url, trainable=hub_module_trainable)
   pooled_output, _ = bert_model([input_word_ids, input_mask, input_type_ids])
-  output = tf.keras.layers.Dropout(rate=bert_config.hidden_dropout_prob)(
+  output = tf.keras.layers.Dropout(rate=bert_config.dropout_rate)(
       pooled_output)
 
   output = tf.keras.layers.Dense(
