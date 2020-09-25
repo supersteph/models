@@ -55,7 +55,7 @@ common_flags.define_common_bert_flags()
 FLAGS = flags.FLAGS
 
 
-def get_pretrain_dataset_fn(input_file_pattern, seq_length,
+def set_fn(input_file_pattern, seq_length,
                             max_predictions_per_seq, global_batch_size):
   """Returns input dataset from input file string."""
   def _dataset_fn(ctx=None):
@@ -105,7 +105,7 @@ def run_customized_training(strategy,
     pretrain_model, disc_model = electra_models.pretrain_model(
         electra_config, max_seq_length, max_predictions_per_seq)
     optimizer = optimization.create_optimizer(
-        initial_lr, steps_per_epoch * epochs, warmup_steps)
+        initial_lr, steps_per_epoch * epochs, warmup_steps, optimizer_type='lamb')
     pretrain_model.optimizer = performance.configure_optimizer(
         optimizer,
         use_float16=common_flags.use_float16(),
