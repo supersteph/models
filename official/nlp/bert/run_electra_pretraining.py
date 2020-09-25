@@ -55,7 +55,7 @@ common_flags.define_common_bert_flags()
 FLAGS = flags.FLAGS
 
 
-def set_fn(input_file_pattern, seq_length,
+def get_pretrain_dataset_fn(input_file_pattern, seq_length,
                             max_predictions_per_seq, global_batch_size):
   """Returns input dataset from input file string."""
   def _dataset_fn(ctx=None):
